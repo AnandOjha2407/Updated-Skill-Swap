@@ -122,10 +122,8 @@
     
             <!-- Create Project Button -->
             <div class="button-container1">
-                <button class="styled-button2" onclick="window.location.href='/create_project';">
-                    Create Project
-                </button>
-            </div>
+                <button class="styled-button2" onclick="showCreateRepo()">Create Project</button>
+            </div>            
     
             <!-- Settings Button -->
             <div class="button-container2">
@@ -180,6 +178,14 @@
             <div class="repo-item">
                 <h3>Project Alpha</h3>
                 <p>Description: A collaborative project to improve user interface design.</p>
+            </div>
+            <div class="repo-item">
+                <h3>Project Beta</h3>
+                <p>Description: A machine learning project focused on sentiment analysis.</p>
+            </div>
+            <div class="repo-item">
+                <h3>Project Beta</h3>
+                <p>Description: A machine learning project focused on sentiment analysis.</p>
             </div>
             <div class="repo-item">
                 <h3>Project Beta</h3>
@@ -357,33 +363,99 @@
 
 <script>
     // Toggle Notifications
-function toggleNotifications() {
-    const menu = document.getElementById('notification-menu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+// Handle toggling visibility for menus and closing them when clicking elsewhere
+document.addEventListener('click', function (event) {
+    const notificationMenu = document.getElementById('notification-menu');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    // Check if the click is on the notification button
+    if (event.target.closest('.icon-button')) {
+        const clickedElement = event.target.closest('.icon-button');
+        if (clickedElement.querySelector('.fa-bell')) {
+            toggleMenu(notificationMenu);
+        }
+    }
+    // Close the notification menu if the click is outside
+    else if (!event.target.closest('#notification-menu')) {
+        notificationMenu.style.display = 'none';
+    }
+
+    // Close the settings dropdown if clicking outside
+    if (!event.target.closest('#dropdown-menu') && !event.target.closest('.settings-button')) {
+        dropdownMenu.style.display = 'none';
+    }
+});
+
+// Toggle menu visibility function
+function toggleMenu(menu) {
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
-// Toggle Settings Dropdown
-function toggleDropdown() {
-    const menu = document.getElementById('dropdown-menu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
 
 </script>
 
 <script>
+    // COLLABORATE SECTION
 // Remove document.addEventListener and test directly:
+// Get the sections and define a function for toggling
 const createRepoSection = document.getElementById('create-repo-section');
 const existingReposSection = document.getElementById('existing-repos-section');
 
+// Function to toggle sections
+function toggleSection(sectionToShow, sectionToHide) {
+    if (sectionToShow.classList.contains('hidden')) {
+        sectionToShow.classList.remove('hidden');
+        sectionToHide.classList.add('hidden');
+    } else {
+        sectionToShow.classList.add('hidden');
+    }
+}
+
+// Attach the updated toggle logic to the buttons for 
 window.showCreateRepo = function () {
-    createRepoSection.classList.remove('hidden');
-    existingReposSection.classList.add('hidden');
+    toggleSection(createRepoSection, existingReposSection);
 };
 
 window.showExistingRepos = function () {
-    existingReposSection.classList.remove('hidden');
-    createRepoSection.classList.add('hidden');
+    toggleSection(existingReposSection, createRepoSection);
 };
+
+// Hide sections when clicking outside of them
+document.addEventListener('click', function (event) {
+    if (!createRepoSection.contains(event.target) &&
+        !existingReposSection.contains(event.target) &&
+        !event.target.matches('.styled-button3')) {
+        createRepoSection.classList.add('hidden');
+        existingReposSection.classList.add('hidden');
+    }
+});
+
+
+document.addEventListener('click', function (event) {
+    console.log('Clicked element:', event.target);
+
+    const notificationMenu = document.getElementById('notification-menu');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    // Check if the click is on the Settings button
+    if (event.target.closest('.styled-button')) {
+        const clickedElement = event.target.closest('.styled-button');
+        console.log('Clicked button text:', clickedElement.textContent.trim());
+        if (clickedElement.textContent.trim() === 'Settings') {
+            toggleMenu(dropdownMenu);
+        }
+    }
+    // Close the dropdown menu if the click is outside
+    else if (!event.target.closest('#dropdown-menu')) {
+        dropdownMenu.style.display = 'none';
+    }
+
+    // Close the notification menu if clicking outside
+    if (!event.target.closest('#notification-menu') && !event.target.closest('.icon-button')) {
+        notificationMenu.style.display = 'none';
+    }
+});
+
 
 </script>
 

@@ -11,7 +11,10 @@ body {
   #CUSTOM PROPERTY
 \*-----------------------------------*/
 
- 
+.hidden {
+  display: none;
+}
+
 
 
 :root {
@@ -1466,7 +1469,7 @@ nav .logo {
   background-color: #c4fff1;
   padding: 20px; /*testing*/
   width: 300px;
-  height: 60%;
+  height: 70%;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -1582,7 +1585,7 @@ nav .logo {
   background-size: cover;
   padding: 50px 20px;
   text-align: center;
-  height: 500px;
+  height: 750px;
   width: 100%;
 }
 
@@ -1628,6 +1631,7 @@ nav .logo {
   /* display: none; */
   margin-top: 30px;
   text-align: left;
+  height: 50%;
   padding: 20px;
   background-color: #ffffff;
   border-radius: 8px;
@@ -1672,6 +1676,7 @@ nav .logo {
   padding: 15px;
   border-radius: 8px;
   width: 300px;
+  height: 150px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 

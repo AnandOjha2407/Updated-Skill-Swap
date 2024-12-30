@@ -365,10 +365,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     typeWriter(); // Start the typing effect
 });
-
-
         </script>
         
+<script>
+
+document.addEventListener('click', function (event) {
+    console.log('Clicked element:', event.target);
+
+    const notificationMenu = document.getElementById('notification-menu');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    // Check if the click is on the Settings button
+    if (event.target.closest('.styled-button')) {
+        const clickedElement = event.target.closest('.styled-button');
+        console.log('Clicked button text:', clickedElement.textContent.trim());
+        if (clickedElement.textContent.trim() === 'Settings') {
+            toggleMenu(dropdownMenu);
+        }
+    }
+    // Close the dropdown menu if the click is outside
+    else if (!event.target.closest('#dropdown-menu')) {
+        dropdownMenu.style.display = 'none';
+    }
+
+    // Close the notification menu if clicking outside
+    if (!event.target.closest('#notification-menu') && !event.target.closest('.icon-button')) {
+        notificationMenu.style.display = 'none';
+    }
+});
+
+
+
+</script>
         
 </body>
 </html>
