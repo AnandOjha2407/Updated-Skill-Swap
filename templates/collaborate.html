@@ -157,18 +157,18 @@
 
     <div id="create-repo-section" class="repo-section hidden">
         <h2>Create a New Repository</h2>
-        <form id="create-repo-form">
+        <form id="create-repo-form" action="/create_project" method="POST" enctype="multipart/form-data">
             <label for="repo-name">Project Name</label>
-            <input type="text" id="repo-name" name="repo-name" placeholder="Enter repository name" required>
-
+            <input type="text" id="repo-name" name="name" placeholder="Enter repository name" required>
+        
             <label for="repo-description">Description</label>
-            <textarea id="repo-description" name="repo-description" placeholder="Enter project description" rows="4" required></textarea>
-
+            <textarea id="repo-description" name="description" placeholder="Enter project description" rows="4" required></textarea>
+        
             <label for="upload-files">Upload Files</label>
-            <input type="file" id="upload-files" name="upload-files" multiple>
-
+            <input type="file" id="upload-files" name="files" multiple>
+        
             <button type="submit" class="styled-button">Submit</button>
-        </form>
+        </form>        
     </div>
 
     <div id="existing-repos-section" class="repo-section hidden">
@@ -319,15 +319,7 @@
               Made with ❤️ by TEAM SKILL SWAP <br>
               © 2024 Anand Ojha. All rights reserved.
             </span>
-            <!-- Special Thanks GitHub Logo -->
-
-              <div class="special-thanks mt-3">
-                <a href="https://github.com/Nyxiaz" target="_blank" class="social-icon">
-                  <img src="https://img.icons8.com/ios-filled/50/000000/github.png" alt="Special Thanks GitHub" title="Special Thanks">
-                 </a>
-                 <span>Special Thanks to <a href="https://github.com/Nyxiaz" target="_blank" class="text-body-secondary">Nyxiaz</a></span>
-              </div>
-
+            
           </div>
         </footer>
       </div>

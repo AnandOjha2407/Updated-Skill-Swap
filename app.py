@@ -1,8 +1,13 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import bcrypt
+import os
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploaded_files'  # Directory for storing files
+
+# Ensure the upload folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # MySQL connection
 db = mysql.connector.connect(
@@ -13,7 +18,7 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor(dictionary=True)
 
-# Route for form page
+# Route for the form page
 @app.route('/', methods=['GET', 'POST'])
 def form():
     if request.method == 'POST':
@@ -45,6 +50,41 @@ def form():
         return redirect('/landing')  # Redirect to the landing page
     return render_template('form.html')
 
+
+@app.route('/create_project', methods=['GET', 'POST'])
+def create_project():
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        files = request.files.getlist('files')
+
+        # Save uploaded files
+        file_paths = []
+        for file in files:
+            if file.filename:  # Check if the file is not empty
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+                file.save(file_path)
+                file_paths.append(file.filename)
+
+        # Store data in the MySQL database
+        cursor.execute(
+            "INSERT INTO projects (name, description, files) VALUES (%s, %s, %s)",
+            (name, description, ','.join(file_paths))
+        )
+        db.commit()
+
+        return redirect(url_for('view_projects'))
+    return render_template('create_project.html')
+
+
+@app.route('/view_projects', methods=['GET'])
+def view_projects():
+    # Fetch all projects from MySQL
+    cursor.execute("SELECT * FROM projects")
+    projects = cursor.fetchall()
+    return render_template('view_projects.html', projects=projects)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error_message = None  # Variable to hold error message
@@ -61,8 +101,9 @@ def login():
             return redirect('/landing')
         else:
             error_message = "Login failed, check your email or password. Retry"
-    
+
     return render_template('login.html', error_message=error_message)
+
 
 @app.route('/landing', methods=['GET'])
 def landing():
@@ -102,17 +143,21 @@ def landing():
 
     return render_template('landing.html', users=filtered_users)
 
+
 @app.route('/collaborate', methods=['GET'])
 def collaborate():
     return render_template('collaborate.html')
+
 
 @app.route('/code_board', methods=['GET'])
 def code_board():
     return render_template('code_board.html')
 
+
 @app.route('/skill_swap', methods=['GET'])
 def skill_swap():
     return render_template('skill_swap.html')
+
 
 @app.route('/users')
 def users_page():
@@ -120,6 +165,7 @@ def users_page():
     cursor.execute("SELECT name, skills, purpose, contact, profile_picture, email FROM users")
     users = cursor.fetchall()
     return render_template('users.html', users=users)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
