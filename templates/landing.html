@@ -95,18 +95,18 @@
 
 
 
-    <div id="search-results" class="search-results">
+      <div id="search-results" class="search-results">
         {% if users %}
             {% for user in users %}
-                <a href="/user/{{ user[0] }}" style="text-decoration: none; color: inherit;"> 
-                    <div class="cards"> 
+                <a href="/user/{{ user['_id'] }}" style="text-decoration: none; color: inherit;">
+                    <div class="cards">
                         <div class="image-container">
-                            <img src="{{ user[5] }}" alt="Profile Picture" class="profile-pic"> 
+                            <img src="{{ user['profile_picture'] }}" alt="Profile Picture" class="profile-pic">
                         </div>
-                        <h2>{{ user[1] }}</h2> 
-                        <p><strong>Skills:</strong> {{ user[2] }}</p> 
-                        <p><strong>Interested in:</strong> {{ user[3] }}</p> 
-                        <p><strong>Contact:</strong> {{ user[4] }}</p> 
+                        <h2>{{ user['name'] }}</h2>
+                        <p><strong>Skills:</strong> {{ user['skills'] }}</p>
+                        <p><strong>Interested in:</strong> {{ user['purpose'] }}</p>
+                        <p><strong>Contact:</strong> {{ user['contact'] }}</p>
                     </div>
                 </a>
             {% endfor %}
