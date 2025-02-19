@@ -78,7 +78,6 @@ def search():
 
 
 ## MongoDB Connection
-client = MongoClient("mongodb+srv://Anand_Ojha:anand@skillswapdb.k5rzx.mongodb.net/")
 db = client["skill_swap_db"]
 projects_collection = db["projects"]  # Projects schema
 fs = GridFS(db)  # For file storage

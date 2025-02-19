@@ -1767,3 +1767,24 @@ nav .logo {
   z-index: 1000;
   transition: opacity 0.3s ease-in-out;
 }
+
+
+#suggestions-box {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  max-height: 150px;
+  overflow-y: auto;
+  width: 250px;
+  display: none;
+  z-index: 100;
+}
+
+.suggestion-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #f0f0f0;
+}

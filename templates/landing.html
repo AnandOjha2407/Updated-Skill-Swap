@@ -28,9 +28,10 @@
     
         <div class="search-container">
           <form id="search-form" action="/search" method="GET">
-              <input type="text" id="search-input" placeholder="Search skills..." name="query">
+              <input type="text" id="search-input" placeholder="Search skills..." name="query" autocomplete="off" onkeyup="fetchSuggestions()">
               <button type="submit">Search</button>
               <button type="button" class="filter-btn" onclick="toggleFilters()">Filters</button>
+              <div id="suggestions-box"></div> <!-- Suggestions appear here -->
           </form>
       
           <div id="filter-options" style="display:none;">
@@ -42,6 +43,7 @@
               <button type="button" onclick="applyFilters()">Apply Filters</button>
           </div>
       </div>
+      
       
     
         <div class="side-nav">
@@ -297,8 +299,6 @@
                 <ul class="dropdown-menu" aria-labelledby="emailDropdown">
                   <li><a class="dropdown-item" href="mailto:anandojha901@gmail.com">Anand Ojha</a></li>
                   <li><a class="dropdown-item" href="mailto:anshu22072004@gmail.com">Anchal Chauhan</a></li>
-                  <li><a class="dropdown-item" href="mailto:contact@example.com">Azeezah</a></li>
-                  <li><a class="dropdown-item" href="mailto:contact@example.com">Dhanush</a></li>
                 </ul>
               </div>
             </div>
@@ -405,6 +405,45 @@ function applyFilters() {
 
     window.location.href = url; // Redirect with filters
 }
+
+
+
+function fetchSuggestions() {
+    let query = document.getElementById("search-input").value.trim();
+
+    if (query.length < 1) { 
+        document.getElementById("suggestions-box").innerHTML = "";
+        return;
+    }
+
+    fetch(`/autocomplete?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            let suggestionsBox = document.getElementById("suggestions-box");
+            suggestionsBox.innerHTML = "";
+            suggestionsBox.style.display = "block";
+
+            data.forEach(item => {
+                let div = document.createElement("div");
+                div.classList.add("suggestion-item");
+                div.innerText = item;
+                div.onclick = function() {
+                    document.getElementById("search-input").value = item;
+                    suggestionsBox.innerHTML = "";
+                    suggestionsBox.style.display = "none";
+                };
+                suggestionsBox.appendChild(div);
+            });
+        });
+}
+
+// Hide suggestions when clicking outside
+document.addEventListener("click", function(event) {
+    let suggestionsBox = document.getElementById("suggestions-box");
+    if (event.target.id !== "search-input") {
+        suggestionsBox.style.display = "none";
+    }
+});
 
 
 
