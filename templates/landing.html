@@ -27,23 +27,22 @@
         </ul>
     
         <div class="search-container">
-            <form action="/search" method="GET">
-                <input type="text" placeholder="Search skills..." name="query">
-                <button type="submit">Search</button>
-                <button type="button" class="filter-btn" onclick="toggleFilters()">Filters</button>
-            </form>
-    
-            <div id="filter-options" style="display:none;">
-                <form action="/landing" method="GET"> <!-- Form submission to landing page -->
-                    <label><input type="checkbox" name="filter" value="hackathon"> Hackathon</label><br>
-                    <label><input type="checkbox" name="filter" value="project"> Project</label><br>
-                    <label><input type="checkbox" name="filter" value="skill_up"> Skill Up</label><br>
-                    <label><input type="checkbox" name="filter" value="web_development"> Web Development</label><br>
-                    <label><input type="checkbox" name="filter" value="aiml"> AIML</label><br>
-                    <button type="submit">Apply Filters</button> <!-- Button to apply filters -->
-                </form>
-            </div>
-        </div>
+          <form id="search-form" action="/search" method="GET">
+              <input type="text" id="search-input" placeholder="Search skills..." name="query">
+              <button type="submit">Search</button>
+              <button type="button" class="filter-btn" onclick="toggleFilters()">Filters</button>
+          </form>
+      
+          <div id="filter-options" style="display:none;">
+              <label><input type="checkbox" name="filter" value="hackathon"> Hackathon</label><br>
+              <label><input type="checkbox" name="filter" value="project"> Project</label><br>
+              <label><input type="checkbox" name="filter" value="skill_up"> Skill Up</label><br>
+              <label><input type="checkbox" name="filter" value="web_development"> Web Development</label><br>
+              <label><input type="checkbox" name="filter" value="aiml"> AIML</label><br>
+              <button type="button" onclick="applyFilters()">Apply Filters</button>
+          </div>
+      </div>
+      
     
         <div class="side-nav">
             <!-- Settings Button -->
@@ -95,25 +94,28 @@
 
 
 
+      {% if users is not none %}
       <div id="search-results" class="search-results">
-        {% if users %}
-            {% for user in users %}
-                <a href="/user/{{ user['_id'] }}" style="text-decoration: none; color: inherit;">
-                    <div class="cards">
-                        <div class="image-container">
-                            <img src="{{ user['profile_picture'] }}" alt="Profile Picture" class="profile-pic">
-                        </div>
-                        <h2>{{ user['name'] }}</h2>
-                        <p><strong>Skills:</strong> {{ user['skills'] }}</p>
-                        <p><strong>Interested in:</strong> {{ user['purpose'] }}</p>
-                        <p><strong>Contact:</strong> {{ user['contact'] }}</p>
-                    </div>
-                </a>
-            {% endfor %}
-        {% else %}
-            <p></p>
-        {% endif %}
-    </div>
+          {% if users %}
+              {% for user in users %}
+                  <a href="/user/{{ user['_id'] }}" style="text-decoration: none; color: inherit;">
+                      <div class="cards">
+                          <div class="image-container">
+                              <img src="{{ user['profile_picture'] }}" alt="Profile Picture" class="profile-pic">
+                          </div>
+                          <h2>{{ user['name'] }}</h2>
+                          <p><strong>Skills:</strong> {{ user['skills'] }}</p>
+                          <p><strong>Interested in:</strong> {{ user['purpose'] }}</p>
+                          <p><strong>Contact:</strong> {{ user['contact'] }}</p>
+                      </div>
+                  </a>
+              {% endfor %}
+          {% else %}
+              <p>No results found.</p>
+          {% endif %}
+      </div>
+  {% endif %}
+  
     
 
 <!-----------------------------------------INTRO-SECTION------------------------------------------------>
@@ -385,6 +387,24 @@ document.addEventListener('click', function (event) {
         notificationMenu.style.display = 'none';
     }
 });
+
+
+function toggleFilters() {
+    let filterDiv = document.getElementById("filter-options");
+    filterDiv.style.display = (filterDiv.style.display === "none") ? "block" : "none";
+}
+
+function applyFilters() {
+    let selectedFilters = [];
+    document.querySelectorAll('input[name="filter"]:checked').forEach((checkbox) => {
+        selectedFilters.push(checkbox.value);
+    });
+
+    let query = document.getElementById("search-input").value.trim();
+    let url = `/search?query=${query}&filters=${selectedFilters.join(",")}`;
+
+    window.location.href = url; // Redirect with filters
+}
 
 
 

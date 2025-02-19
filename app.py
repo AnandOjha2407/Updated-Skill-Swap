@@ -1,18 +1,25 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask,jsonify, render_template, request, redirect, url_for
 from pymongo import MongoClient
 import bcrypt
+from gridfs import GridFS
+from dotenv import load_dotenv
+import io
 import os
+import datetime
+from pymongo import MongoClient
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploaded_files'  # Directory for storing files
-
-# Ensure the upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# MongoDB Atlas connection
-client = MongoClient('mongodb+srv://Anand_Ojha:anandojha2407@skillswapdb.k5rzx.mongodb.net/')
-db = client.skill_swap_db  # Database name
-users_collection = db.users  # Collection for storing user data
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["skill_swap_db"]
+users_collection = db["users"]
+# MongoDB Connection
+client = MongoClient(MONGO_URI)
+db = client['skill_swap_db']  # Correct database name
+users_collection = db['users']  # Correct collection name
 projects_collection = db.projects  # Collection for storing project data
 
 # Route for the form page
@@ -51,53 +58,107 @@ def form():
 
 @app.route('/search', methods=['GET'])
 def search():
-    query = request.args.get('query', '').strip().lower()  # Get the search query from URL parameters
+    query = request.args.get('query', '').strip()
 
-    # Fetch users from MongoDB
-    users = list(users_collection.find())  # Fetch all users
+    if not query:
+        return render_template('landing.html', users=None)  # No results when search is empty
 
-    # Filter users based on the search query
-    filtered_users = [
-        user for user in users
-        if query in user['name'].lower() or
-           query in user['skills'].lower() or
-           query in user['purpose'].lower()
-    ]
+    # MongoDB query using regex for case-insensitive search
+    filtered_users = list(users_collection.find({
+        "$or": [
+            {"name": {"$regex": query, "$options": "i"}},  
+            {"skills": {"$regex": query, "$options": "i"}},
+            {"purpose": {"$regex": query, "$options": "i"}}
+        ]
+    }))
 
-    return render_template('landing.html', users=filtered_users)  # Pass filtered users to the template
+    return render_template('landing.html', users=filtered_users) 
 
-# Create Project Route
-@app.route('/create_project', methods=['GET', 'POST'])
-def create_project():
-    if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        files = request.files.getlist('files')
 
-        # Save uploaded files
-        file_paths = []
-        for file in files:
-            if file.filename:  # Check if the file is not empty
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-                file.save(file_path)
-                file_paths.append(file.filename)
 
-        # Store project data in MongoDB
-        projects_collection.insert_one({
-            "name": name,
+
+## MongoDB Connection
+client = MongoClient("mongodb+srv://Anand_Ojha:anand@skillswapdb.k5rzx.mongodb.net/")
+db = client["skill_swap_db"]
+projects_collection = db["projects"]  # Projects schema
+fs = GridFS(db)  # For file storage
+
+@app.route("/collaboration", methods=["POST"])
+def create_repository():
+    try:
+        # Get form data
+        repo_name = request.form.get("name")
+        description = request.form.get("description")
+        uploaded_files = request.files.getlist("files")
+
+        # Store file references
+        file_ids = []
+        for file in uploaded_files:
+            if file.filename:
+                file_id = fs.put(file, filename=file.filename)
+                file_ids.append(file_id)
+
+        # Store project details in MongoDB
+        project_data = {
+            "repo_name": repo_name,
             "description": description,
-            "files": file_paths
-        })
+            "file_ids": file_ids,
+            "created_at": datetime.datetime.utcnow()
+        }
+        projects_collection.insert_one(project_data)
 
-        return redirect(url_for('view_projects'))
-    return render_template('create_project.html')
+        return jsonify({"message": "Repository created successfully!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# View Projects Route
-@app.route('/view_projects', methods=['GET'])
-def view_projects():
-    # Fetch all projects from MongoDB
-    projects = list(projects_collection.find())
-    return render_template('view_projects.html', projects=projects)
+
+@app.route("/get_repositories", methods=["GET"])
+def get_repositories():
+    try:
+        projects = projects_collection.find({})
+        repo_list = []
+
+        for project in projects:
+            file_details = []
+            
+            if "file_ids" in project:
+                for file_id in project["file_ids"]:
+                    file_obj = fs.get(file_id)
+                    file_details.append({
+                        "file_id": str(file_id),
+                        "filename": file_obj.filename
+                    })
+
+            repo_list.append({
+                "name": project.get("repo_name", "Untitled"),
+                "description": project.get("description", "No description"),
+                "file_types": [file["filename"].split(".")[-1] for file in file_details],  # Extract file extensions
+                "files": file_details
+            })
+
+        return jsonify(repo_list), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route("/download/<file_id>", methods=["GET"])
+def download_file(file_id):
+    try:
+        # Fetch file from GridFS
+        file_obj = fs.get(ObjectId(file_id))
+
+        # Stream file content to the client
+        return send_file(
+            io.BytesIO(file_obj.read()),  # Convert file to stream
+            mimetype="application/octet-stream",  # Generic binary type
+            as_attachment=True,
+            download_name=file_obj.filename  # Use original filename
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # Login Route
 @app.route('/login', methods=['GET', 'POST'])
@@ -162,6 +223,11 @@ def landing():
         filtered_users = []  # If no query, don't display users
 
     return render_template('landing.html', users=filtered_users)
+
+
+
+
+
 
 
 # Collaboration Route

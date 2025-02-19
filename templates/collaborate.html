@@ -157,7 +157,7 @@
 
     <div id="create-repo-section" class="repo-section hidden">
         <h2>Create a New Repository</h2>
-        <form id="create-repo-form" action="/create_project" method="POST" enctype="multipart/form-data">
+        <form id="create-repo-form" action="/collaboration" method="POST" enctype="multipart/form-data">
             <label for="repo-name">Project Name</label>
             <input type="text" id="repo-name" name="name" placeholder="Enter repository name" required>
         
@@ -173,26 +173,11 @@
 
     <div id="existing-repos-section" class="repo-section hidden">
         <h2>Your Repositories</h2>
-        <div class="repo-list">
-            <!-- Example repositories -->
-            <div class="repo-item">
-                <h3>Project Alpha</h3>
-                <p>Description: A collaborative project to improve user interface design.</p>
-            </div>
-            <div class="repo-item">
-                <h3>Project Beta</h3>
-                <p>Description: A machine learning project focused on sentiment analysis.</p>
-            </div>
-            <div class="repo-item">
-                <h3>Project Beta</h3>
-                <p>Description: A machine learning project focused on sentiment analysis.</p>
-            </div>
-            <div class="repo-item">
-                <h3>Project Beta</h3>
-                <p>Description: A machine learning project focused on sentiment analysis.</p>
-            </div>
+        <div class="repo-list" id="repo-list">
+            <!-- Repositories will be dynamically added here -->
         </div>
     </div>
+    
 </section>
 
 <!-------------------------------------------------------------------------- FEATURES--------------------------------------------------------------- -->
@@ -450,5 +435,127 @@ document.addEventListener('click', function (event) {
 
 
 </script>
+
+
+<script>
+    document.getElementById('show-repos-btn').addEventListener('click', function() {
+        // Fetch repos from the Flask route
+        fetch('/get_repos')
+            .then(response => response.json())
+            .then(repos => {
+                // Clear existing repo list
+                const repoList = document.getElementById('repo-list');
+                repoList.innerHTML = ''; 
+
+                // Show the repo section
+                document.getElementById('existing-repos-section').classList.remove('hidden');
+
+                // Loop through the repositories and create HTML elements for each
+                repos.forEach(repo => {
+                    const repoItem = document.createElement('div');
+                    repoItem.classList.add('repo-item');
+                    repoItem.innerHTML = `
+                        <h3>${repo.project_name}</h3>
+                        <p>Description: ${repo.description}</p>
+                    `;
+                    repoList.appendChild(repoItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching repositories:', error);
+            });
+    });
+</script>
+
+
+<script>
+    function showPopup(message, isError = false) {
+        const popup = document.createElement("div");
+        popup.className = "popup-message";
+        popup.textContent = message;
+
+        if (isError) {
+            popup.style.backgroundColor = "red";
+        } else {
+            popup.style.backgroundColor = "green";
+        }
+
+        document.body.appendChild(popup);
+
+        // Remove after 3 seconds & refresh page
+        setTimeout(() => {
+            popup.remove();
+            location.reload();  // Refresh page after showing message
+        }, 3000);
+    }
+
+    document.getElementById("create-repo-form").addEventListener("submit", function (event) {
+        event.preventDefault();  // Prevent default form submission
+
+        const formData = new FormData(this);
+        
+        fetch("/collaboration", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showPopup(data.message);
+            } else if (data.error) {
+                showPopup(data.error, true);
+            }
+        })
+        .catch(error => {
+            showPopup("Something went wrong!", true);
+        });
+    });
+
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+    fetchRepositories();
+});
+
+function fetchRepositories() {
+    fetch("/get_repositories")
+        .then(response => response.json())
+        .then(data => {
+            const repoList = document.getElementById("repo-list");
+            repoList.innerHTML = "";  // Clear existing content
+            
+            data.forEach(repo => {
+                const repoCard = document.createElement("div");
+                repoCard.classList.add("repo-card");
+
+                // Ensure file list exists, otherwise default to an empty array
+                const fileList = repo.files && Array.isArray(repo.files) ? repo.files : [];
+
+                repoCard.innerHTML = `
+                    <h3>${repo.name}</h3>
+                    <p>${repo.description}</p>
+                    <p><strong>File Types:</strong> ${repo.file_types ? repo.file_types.join(", ") : "No files"}</p>
+                    <div class="repo-buttons">
+                        <button class="contribute-btn">Contribute</button>
+                        ${fileList.length > 0 ? fileList.map(file => 
+                            `<a href="/download/${file.file_id}" class="download-btn" download>${file.filename}</a>`
+                        ).join("") : `<p>No files available</p>`}
+                    </div>
+                `;
+
+                repoList.appendChild(repoCard);
+            });
+        })
+        .catch(error => console.error("Error fetching repositories:", error));
+}
+
+
+
+
+
+</script>
+
+
+
 
 <!-- CREDITS TO codeshare.io THAT IS USED AS CODE BOARD IN OUR PROJECT-->
